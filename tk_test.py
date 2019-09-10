@@ -1,6 +1,7 @@
 from tkinter import *
 import time
 import numpy as np
+import pandas as pd
 class snake:
     def __init__(self,width,height):
         self.width = width

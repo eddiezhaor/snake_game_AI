@@ -57,7 +57,7 @@ class snake:
         relative_coords = [x1-s_x1,x2-s_x2, y1-s_y1,y2-s_y2]
         if len(self.canvas.find_overlapping(x1,x2,y1,y2)) !=1:
             reward = 2
-            relative_coords = 'terminal'
+            relative_coords = [1]*4
             end = True
         else:
             reward = -0.1

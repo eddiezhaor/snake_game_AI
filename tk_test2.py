@@ -18,9 +18,11 @@ class snake:
         num =100
         self.margin = 10
         self.point = self.canvas.create_oval(num,num, num+10, num+10,fill='black') 
-        self.z = self.canvas.create_rectangle(10,10, 20, 20, fill = 'black')
+        self.z = self.canvas.create_rectangle(10,10, 20, 20,width=1, fill = 'black')
+        # self.h = self.canvas.create_rectangle(10,20,20, 30,width=1, fill = 'black')
         # self.move_oval()
-        # self.canvas.after(1,self.timer) 
+        self.l = [self.z]
+        self.canvas.after(1,self.timer) 
 
     def initGame(self):
         margin = 10
@@ -68,50 +70,60 @@ class snake:
         return relative_coords, reward, end
 
 
-    # def move_oval(self):
-    #     self.canvas.move(self.z,self.x,self.y)
-    #     # self.canvas.after(1,self.move_oval)
+    def move_oval(self):
+        i = 0
+        while i < len(self.l)-1:
+            c1 = self.canvas.coords(self.l[i])
+            c2 = self.canvas.coords(self.l[i+1])
+            self.canvas.move(self.l[i],c2[0]-c1[0],c2[1] - c1[1])
+            i+=1
+        self.canvas.move(self.l[-1],self.x,self.y)
+        # self.canvas.after(1,self.move_oval)
         
-    # def move_left(self,event):
-    #     # self.canvas.focus_set()
-    #     self.x = -1
-    #     self.y = 0
-    #     self.move_oval()
-    #     # self.move_oval()
+    def move_left(self,event):
+        # self.canvas.focus_set()
+        self.x = -10
+        self.y = 0
+        self.move_oval()
+        # self.move_oval()
 
-    # def move_right(self,event):
-    #     # self.canvas.focus_set()
-    #     self.x = 1
-    #     self.y = 0
-    #     self.move_oval()
-    #     # self.move_oval()
+    def move_right(self,event):
+        # self.canvas.focus_set()
+        self.x = 10
+        self.y = 0
+        self.move_oval()
+        # self.move_oval()
 
-    # def move_up(self,event):
-    #     # self.canvas.focus_set()
-    #     self.x = 0
-    #     self.y = -1
-    #     self.move_oval()
-    #     # self.move_oval()
+    def move_up(self,event):
+        # self.canvas.focus_set()
+        self.x = 0
+        self.y = -10
+        self.move_oval()
+        # self.move_oval()
 
-    # def move_down(self,event):
-    #     # self.canvas.focus_set()
-    #     self.x = 0
-    #     self.y = 1
-    #     self.move_oval()
-    #     # self.move_oval()
-
+    def move_down(self,event):
+        # self.canvas.focus_set()
+        self.x = 0
+        self.y = 10
+        self.move_oval()
+        # self.move_oval()
+    def create_body(self):
+        x1,y1,x2,y2 = self.canvas.coords(self.point)
+        new_body = self.canvas.create_rectangle(x1,y1,x2,y2,width=1, fill='black')
+        self.l.insert(0,new_body)
     def create_point(self):
         x1,x2,y1,y2 = self.canvas.coords(self.point)
         if len(self.canvas.find_overlapping(x1,x2,y1,y2)) !=1 :
+            self.create_body()
             self.canvas.delete(self.point)
-            num = np.random.randint(1,self.height-11,size=1)[0]
+            num = np.random.randint(1,self.height/10,size=1)[0]*10
             self.point = self.canvas.create_oval(num,num, num+10, num+10,fill='black')
 
-    # def timer(self):
-    #     if True:
-    #         self.create_point()
-    #         # self.create_point()
-    #         self.canvas.after(100,self.timer) 
+    def timer(self):
+        if True:
+            self.create_point()
+            # self.create_point()
+            self.canvas.after(100,self.timer) 
     
     def reset(self):
         self.canvas.delete(self.z)
@@ -122,10 +134,10 @@ class snake:
         self.point = self.canvas.create_oval(num,num, num+10, num+10,fill='black')
 
 
-# if __name__ == "__main__": 
-#     p = snake(400,400)
-    # p.master.bind('<KeyPress-Left>',p.move_left)
-    # p.master.bind('<KeyPress-Right>',p.move_right)
-    # p.master.bind('<KeyPress-Up>',p.move_up)
-    # p.master.bind('<KeyPress-Down>',p.move_down)
-    # mainloop() 
+if __name__ == "__main__": 
+    p = snake(400,400)
+    p.master.bind('<KeyPress-Left>',p.move_left)
+    p.master.bind('<KeyPress-Right>',p.move_right)
+    p.master.bind('<KeyPress-Up>',p.move_up)
+    p.master.bind('<KeyPress-Down>',p.move_down)
+    mainloop() 

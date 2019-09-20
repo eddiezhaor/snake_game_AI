@@ -12,7 +12,7 @@ def run():
             rl.learning(str(observation),action, reward, str(s_))
             observation = s_
             g.master.after(10,g.master.update())
-            print(reward)
+            # print(reward)
             if end:
                 break
     # g.canvas.mainloop()           

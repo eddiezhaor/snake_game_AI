@@ -22,7 +22,7 @@ class snake:
         # self.h = self.canvas.create_rectangle(10,20,20, 30,width=1, fill = 'black')
         # self.move_oval()
         self.l = [self.z]
-        self.canvas.after(1,self.timer) 
+        # self.canvas.after(1,self.timer) 
 
     def initGame(self):
         margin = 10
@@ -51,21 +51,38 @@ class snake:
         elif action == 3: #right
             if s[0] <= self.width-20:
                 b_action[0] += distance
-        self.canvas.move(self.z,b_action[0], b_action[1])
+        # self.canvas.move(self.z, b_action[0], b_action[1])
+        self.x = b_action[0]
+        self.y = b_action[1]
+        x1,x2,y1,y2 = self.canvas.coords(self.point)
+        reward = self.check_collsion()
+        end = False
         s_ = self.canvas.coords(self.z)
         s_x1, s_x2, s_y1, s_y2 = s_ 
         # print(s_)
-        x1,x2,y1,y2 = self.canvas.coords(self.point)
-        relative_coords = [x1-s_x1,x2-s_x2, y1-s_y1,y2-s_y2]
-        if len(self.canvas.find_overlapping(x1,x2,y1,y2)) !=1:
+        
+        a1,b1,a2,b2 = self.canvas.coords(self.l[-1])
+        m1,n1,m2,n2 = self.canvas.coords(self.l[0])
+        if self.canvas.coords(self.point) == self.canvas.coords(self.l[-1]) :
+            self.create_body()
+            self.canvas.delete(self.point)
+            num = np.random.randint(1,(self.height-20)/10,size=1)[0]*10
+            self.point = self.canvas.create_oval(num,num, num+10, num+10,fill='black')
             reward = 2
-            relative_coords = 'terminal'
-            end = True
-        else:
-            reward = -0.1
+            relative_coords = [1,1,1,1,2,2,2,2]
             end = False
-        if s[1] < self.margin or s[1] > self.height-20 or s[0] < self.margin or s[0] > self.width-20:
+        # if len(self.canvas.find_overlapping(x1,x2,y1,y2)) !=1:
+        #     reward = 2
+        #     relative_coords = [1,1,1,1]
+        #     end = True
+        # else:
+        #     reward = -0.1
+        #     end = False
+        if s_[1] < self.margin or s_[1] > self.height-20 or s_[0] < self.margin or s_[0] > self.width-20:
             reward = -1
+            end = False
+            self.reset()
+        relative_coords = [x1-s_x1,x2-s_x2, y1-s_y1,y2-s_y2,x1-m1,x2-n1,y1-m2,y2-n2]
         # self.master.after(100,self.go)
         return relative_coords, reward, end
 
@@ -79,65 +96,103 @@ class snake:
             i+=1
         self.canvas.move(self.l[-1],self.x,self.y)
         # self.canvas.after(1,self.move_oval)
+
+    def check_collsion(self):
+        if len(self.l)>1:
+            a1, a2, a3, a4 = self.canvas.coords(self.l[-2])
+            x1, x2, x3, x4 = self.canvas.coords(self.l[-1])
+            # print(self.canvas.coords(self.l[-2]),self.canvas.coords(self.l[-1]),self.x,self.y)
+            if [x1+self.x, x2+self.y, x3+self.x, x4+self.y]!=[a1,a2,a3,a4]:
+                self.move_oval()
+        else:
+            self.move_oval()
+        x1, x2, x3, x4 = self.canvas.coords(self.l[-1])
+        t = [x1, x2, x3, x4]
+        overlapping = self.canvas.find_overlapping(x1,x2,x3,x4)
+        reward = -0.1
+        end=False
+        for item in overlapping:
+            if item in self.l[::-1][3:]:
+                if t ==self.canvas.coords(item):
+                    self.reset() 
+                    # x1,x2,y1,y2 = self.canvas.coords(self.point)
+                    # s_ = self.canvas.coords(self.z)
+                    # relative_coords = [x1-s_x1,x2-s_x2, y1-s_y1,y2-s_y2,xx1-s_x1,x2-s_x2, y1-s_y1,y2-s_y2]
+                    reward = -1
+        return  reward
         
-    def move_left(self,event):
-        # self.canvas.focus_set()
-        self.x = -10
-        self.y = 0
-        self.move_oval()
-        # self.move_oval()
+         
+         
 
-    def move_right(self,event):
-        # self.canvas.focus_set()
-        self.x = 10
-        self.y = 0
-        self.move_oval()
-        # self.move_oval()
+    # def move_left(self,event):
+    #     # self.canvas.focus_set()
+        
+    #     self.x = -10
+    #     self.y = 0
+    #     self.check_collsion(event)
+    #     # self.move_oval()
 
-    def move_up(self,event):
-        # self.canvas.focus_set()
-        self.x = 0
-        self.y = -10
-        self.move_oval()
-        # self.move_oval()
+    # def move_right(self,event):
+    #     # self.canvas.focus_set()
+        
+    #     self.x = 10
+    #     self.y = 0
+    #     self.check_collsion(event)
+    #     # self.move_oval()
+    #     # self.move_oval()
 
-    def move_down(self,event):
-        # self.canvas.focus_set()
-        self.x = 0
-        self.y = 10
-        self.move_oval()
-        # self.move_oval()
+    # def move_up(self,event):
+        
+    #     # self.canvas.focus_set()
+    #     self.x = 0
+    #     self.y = -10
+    #     self.check_collsion(event)
+    #     # self.move_oval()
+    #     # self.move_oval()
+
+    # def move_down(self,event):
+        
+    #     # self.canvas.focus_set()
+    #     self.x = 0
+    #     self.y = 10
+    #     self.check_collsion(event)
+    #     # self.move_oval()
+    #     # self.move_oval()
     def create_body(self):
         x1,y1,x2,y2 = self.canvas.coords(self.point)
         new_body = self.canvas.create_rectangle(x1,y1,x2,y2,width=1, fill='black')
         self.l.insert(0,new_body)
-    def create_point(self):
-        x1,x2,y1,y2 = self.canvas.coords(self.point)
-        if len(self.canvas.find_overlapping(x1,x2,y1,y2)) !=1 :
-            self.create_body()
-            self.canvas.delete(self.point)
-            num = np.random.randint(1,self.height/10,size=1)[0]*10
-            self.point = self.canvas.create_oval(num,num, num+10, num+10,fill='black')
+    # def create_point(self):
+    #     x1,x2,y1,y2 = self.canvas.coords(self.point)
+    #     a1,b1,a2,b2 = self.canvas.coords(self.l[-1])
+    #     if self.canvas.coords(self.point) == self.canvas.coords(self.l[-1]) :
+    #         self.create_body()
+    #         self.canvas.delete(self.point)
+    #         num = np.random.randint(1,self.height/10,size=1)[0]*10
+    #         self.point = self.canvas.create_oval(num,num, num+10, num+10,fill='black')
 
-    def timer(self):
-        if True:
-            self.create_point()
-            # self.create_point()
-            self.canvas.after(100,self.timer) 
+    # def timer(self):
+    #     if True:
+    #         self.create_point()
+    #         # self.create_point()
+    #         self.canvas.after(100,self.timer) 
     
     def reset(self):
-        self.canvas.delete(self.z)
+        self.canvas.delete('all')
+        self.initGame()
         self.z = self.canvas.create_rectangle(10,10, 20, 20, fill = 'black')
+        self.l = [self.z]
         self.canvas.delete(self.point)
         # num = np.random.randint(1,self.height-11,size=1)[0]
-        num = 100
+        # num = 100
+        # self.point = self.canvas.create_oval(num,num, num+10, num+10,fill='black')
+        num = np.random.randint(1,(self.height-20)/10,size=1)[0]*10
         self.point = self.canvas.create_oval(num,num, num+10, num+10,fill='black')
 
-
-if __name__ == "__main__": 
-    p = snake(400,400)
-    p.master.bind('<KeyPress-Left>',p.move_left)
-    p.master.bind('<KeyPress-Right>',p.move_right)
-    p.master.bind('<KeyPress-Up>',p.move_up)
-    p.master.bind('<KeyPress-Down>',p.move_down)
-    mainloop() 
+# if __name__ == "__main__": 
+#     p = snake(400,400)
+#     p.master.bind('<KeyPress-Left>',p.move_left)
+#     p.master.bind('<KeyPress-Right>',p.move_right)
+#     p.master.bind('<KeyPress-Up>',p.move_up)
+#     p.master.bind('<KeyPress-Down>',p.move_down)
+#     mainloop() 

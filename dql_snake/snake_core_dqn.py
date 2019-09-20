@@ -33,17 +33,21 @@ class rl:
         self.a = tf.placeholder(tf.int32, [None, ], name='a')  # input Action
         w_init, b_init = tf.random_normal_initializer(0., 0.3), tf.constant_initializer(0.1)
         with tf.variable_scope('pred_net'):
-            e1 = tf.layers.dense(self.s, 100, tf.nn.tanh, kernel_initializer=w_init,
+            e1 = tf.layers.dense(self.s, 60, tf.nn.tanh, kernel_initializer=w_init,
                                  bias_initializer=b_init, name='e1')
-            self.q_eval = tf.layers.dense(e1, self.num_a, kernel_initializer=w_init,
+            e2 = tf.layers.dense(e1, 32, tf.nn.tanh, kernel_initializer=w_init,
+                                 bias_initializer=b_init, name='e2')                                 
+            self.q_eval = tf.layers.dense(e2, self.num_a, kernel_initializer=w_init,
                                           bias_initializer=b_init, name='q')
         
         # ------------------ build target_net ------------------
         with tf.variable_scope('target_net'):
-            t1 = tf.layers.dense(self.s_, 100, tf.nn.tanh, kernel_initializer=w_init,
+            t1 = tf.layers.dense(self.s_, 60, tf.nn.tanh, kernel_initializer=w_init,
                                  bias_initializer=b_init, name='t1')
-            self.q_next = tf.layers.dense(t1, self.num_a, kernel_initializer=w_init,
-                                          bias_initializer=b_init, name='t2')
+            t2 = tf.layers.dense(t1, 32, tf.nn.tanh, kernel_initializer=w_init,
+                                 bias_initializer=b_init, name='t2')                                    
+            self.q_next = tf.layers.dense(t2, self.num_a, kernel_initializer=w_init,
+                                          bias_initializer=b_init, name='t3')
 
         with tf.variable_scope('q_target'):
             q_target = self.r + self.gamma * tf.reduce_max(self.q_next, axis=1, name='Qmax_s_')    # shape=(None, )

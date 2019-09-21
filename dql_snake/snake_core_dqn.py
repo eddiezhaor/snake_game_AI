@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np 
 import tensorflow as tf
 class rl:
-    def __init__(self,num_f, num_a, reward_decay=0.9, greedy=0.9,learing_rate=0.01, replace_num=300, batch_size=50,e_greedy_increment=None, memory_size=500):
+    def __init__(self,num_f, num_a, reward_decay=0.9, greedy=0.9,learing_rate=0.1, replace_num=300, batch_size=50,e_greedy_increment=None, memory_size=500):
         self.num_f = num_f
         self.num_a = num_a
         self.lr = learing_rate
@@ -14,7 +14,7 @@ class rl:
         self.learn_step_counter = 0
         self.epsilon_increment = e_greedy_increment
         self.epsilon = 0 if e_greedy_increment is not None else self.epsilon_max
-        self.memory = np.zeros((self.memory_size, self.num_f*2+2))
+        self.memory = np.zeros((self.memory_size, self.num_f*2+3))
         self.nnet()
 #        self.q_table = pd.DataFrame(columns=self.actions, dtype=np.float64)
         t_params =  tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='target_net')
@@ -31,6 +31,7 @@ class rl:
         self.s_ = tf.placeholder(tf.float32, [None, self.num_f], name='s_')  # input Next State
         self.r = tf.placeholder(tf.float32, [None, ], name='r')  # input Reward
         self.a = tf.placeholder(tf.int32, [None, ], name='a')  # input Action
+        self.next_a = tf.placeholder(tf.int32, [None, ], name='next_a')  # input Action
         w_init, b_init = tf.random_normal_initializer(0., 0.3), tf.constant_initializer(0.1)
         with tf.variable_scope('pred_net'):
             e1 = tf.layers.dense(self.s, 60, tf.nn.tanh, kernel_initializer=w_init,
@@ -50,7 +51,8 @@ class rl:
                                           bias_initializer=b_init, name='t3')
 
         with tf.variable_scope('q_target'):
-            q_target = self.r + self.gamma * tf.reduce_max(self.q_next, axis=1, name='Qmax_s_')    # shape=(None, )
+            q_target = self.r + self.gamma * tf.gather(self.q_next, self.next_a, axis=1, name='Qmax_s_')    # shape=(None, )
+            print(self.q_next[0])
             self.q_target = tf.stop_gradient(q_target)
         with tf.variable_scope('q_eval'):
             a_indices = tf.stack([tf.range(tf.shape(self.a)[0], dtype=tf.int32), self.a], axis=1)
@@ -60,10 +62,10 @@ class rl:
         with tf.variable_scope('train'):
             self._train_op = tf.train.RMSPropOptimizer(self.lr).minimize(self.loss)
                         
-    def store_transition(self, s, a, r, s_):
+    def store_transition(self, s, a, r, next_a, s_):
         if not hasattr(self, 'memory_counter'):
             self.memory_counter = 0
-        transition = np.hstack((s, [a, r], s_))
+        transition = np.hstack((s, [a, r, next_a], s_))
         # replace the old memory with new memory
         index = self.memory_counter % self.memory_size
         self.memory[index, :] = transition
@@ -101,11 +103,12 @@ class rl:
                 self.s: batch_memory[:, :self.num_f],
                 self.a: batch_memory[:, self.num_f],
                 self.r: batch_memory[:, self.num_f + 1],
+                self.next_a: batch_memory[:, self.num_f + 2],
                 self.s_: batch_memory[:, -self.num_f:],
             })
 
         self.cost_his.append(cost)
-        print(cost)
+        # print(cost)
         # increasing epsilon
         self.epsilon = 0.9
         self.learn_step_counter += 1

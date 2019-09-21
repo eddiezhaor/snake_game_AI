@@ -38,17 +38,28 @@ class snake:
     def go(self,action):
         s = self.canvas.coords(self.z)
         b_action = np.array([0,0])
+        wall_ud = 0
+        wall_l = 0
+        wall_r = 0
         distance = 10
         if action == 0: #up
+            if s[1] == 10:
+                wall_ud = 1
             if s[1] >=10 :
                 b_action[1] -= distance
         elif action == 1: #down
+            if s[1] == self.height - 20:
+                wall_ud = 1
             if s[1] <= self.height - 20:
                 b_action[1] += distance
         elif action == 2: #left
+            if s[0] == 10:
+                wall_l = 1
             if s[0] >= 10:
                 b_action[0] -= distance
         elif action == 3: #right
+            if s[0] == self.width-20:
+                wall_r = 1
             if s[0] <= self.width-20:
                 b_action[0] += distance
         # self.canvas.move(self.z, b_action[0], b_action[1])
@@ -69,7 +80,7 @@ class snake:
             num = np.random.randint(1,(self.height-20)/10,size=1)[0]*10
             self.point = self.canvas.create_oval(num,num, num+10, num+10,fill='black')
             reward = 2
-            relative_coords = [1,1,1,1,2,2,2,2]
+            relative_coords = [wall_ud,wall_l,wall_r,1,1,1,1,2,2,2,2]
             end = False
         # if len(self.canvas.find_overlapping(x1,x2,y1,y2)) !=1:
         #     reward = 2
@@ -82,7 +93,7 @@ class snake:
             reward = -1
             end = False
             self.reset()
-        relative_coords = [x1-s_x1,x2-s_x2, y1-s_y1,y2-s_y2,x1-m1,x2-n1,y1-m2,y2-n2]
+        relative_coords = [wall_ud,wall_l,wall_r,x1-s_x1,x2-s_x2, y1-s_y1,y2-s_y2,a1-m1,b1-n1,a2-m2,b2-n2]
         # self.master.after(100,self.go)
         return relative_coords, reward, end
 
@@ -98,6 +109,7 @@ class snake:
         # self.canvas.after(1,self.move_oval)
 
     def check_collsion(self):
+        reward = -0.1
         if len(self.l)>1:
             a1, a2, a3, a4 = self.canvas.coords(self.l[-2])
             x1, x2, x3, x4 = self.canvas.coords(self.l[-1])
@@ -109,7 +121,6 @@ class snake:
         x1, x2, x3, x4 = self.canvas.coords(self.l[-1])
         t = [x1, x2, x3, x4]
         overlapping = self.canvas.find_overlapping(x1,x2,x3,x4)
-        reward = -0.1
         end=False
         for item in overlapping:
             if item in self.l[::-1][3:]:
